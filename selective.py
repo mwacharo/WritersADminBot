@@ -8,6 +8,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from undetected_chromedriver import Chrome, ChromeOptions
 import time
+
 # Function to save user data to a file
 def save_user_data(email, password, custom_bid_message):
     user_data = {'email': email, 'password': password, 'custom_bid_message': custom_bid_message}
@@ -23,12 +24,21 @@ def load_user_data():
     except FileNotFoundError:
         return None
 
+# Function to check if user data exists
+def user_data_exists():
+    try:
+        with open('user_data.pkl', 'rb') as file:
+            pickle.load(file)
+        return True
+    except FileNotFoundError:
+        return False
+
 # Set up the undetected Chrome browser
 options = ChromeOptions()
 browser = Chrome(options=options)
 
 registered_emails = ['mwacharomwanyolo@gmail.com', 'example1@gmail.com', 'example2@gmail.com']
-subjects = ['Management', 'Marketing', 'Biology', 'Physics', 'Finance', 'Law', 'Nursing', 'Technology', 'Education',
+subjects = ['Management','English', 'Marketing', 'Biology', 'Physics', 'Finance', 'Law', 'Nursing', 'Technology', 'Education',
             'Business', 'Finance', 'Economics', 'Chemistry', 'Communications and Media', 'Ethics', 'Linguistics',
             'Medicine and Health', 'Nature', 'Political Science', 'Religion and Theology', 'Tourism', 'Others',
             'Project Management', 'Geography', 'criminal justice', 'I.T', 'FINANCE', 'HEALTHCARE', 'Programming',
@@ -129,14 +139,27 @@ def click_new_link():
     )
     new_link.click()
 
-user_email = input('Enter your email: ')
-# prompt for the user to enter their custom bid message
-custom_bid_message = input('Enter your custom bid message: ')
+  # User Input Section
+if user_data_exists():
+    # If user data exists, load it
+    user_email, user_password, custom_bid_message = load_user_data()
+else:
+    # If user data doesn't exist, prompt the user for input
+    user_email = input('Enter your email: ')
+    user_password = input('Enter your password: ')
+    custom_bid_message = input('Enter your custom bid message: ')
+
+    # Save the entered user data
+    save_user_data(user_email, user_password, custom_bid_message)  
+
+# user_email = input('Enter your email: ')
+# # prompt for the user to enter their custom bid message
+# custom_bid_message = input('Enter your custom bid message: ')
 
 if not check_user_is_registered(user_email):
     print('You are not registered. Please register or exit program execution.')
 else:
-    user_password = input('Enter your password: ')
+    # user_password = input('Enter your password: ')
 
     print('Available subjects:')
     for i, subject in enumerate(subjects, 1):
@@ -182,7 +205,7 @@ else:
         print("Clicking on the 'New' link...")
         retry_operation(click_new_link)
 
-        max_iterations = 1000000
+        max_iterations = 100
         for _ in range(max_iterations):
             process_orders(selected_subjects)
             print("Refreshing for new orders...")
