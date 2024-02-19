@@ -1,4 +1,5 @@
-
+import pickle
+import os  # Import the os module for checking file existence
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,18 +9,40 @@ from selenium.common.exceptions import TimeoutException, StaleElementReferenceEx
 from undetected_chromedriver import Chrome, ChromeOptions
 import time
 
+
+# Function to save user data to a file
+def save_user_data(email, password, custom_bid_message,selected_subjects):
+    user_data = {'email': email, 'password': password, 'custom_bid_message': custom_bid_message,'selected_subjects': selected_subjects}
+    with open('user_data.pkl', 'wb') as file:
+        pickle.dump(user_data, file)
+
+
+def load_user_data():
+    try:
+        with open('user_data.pkl', 'rb') as file:
+            user_data = pickle.load(file)
+        return user_data['email'], user_data['password'], user_data['custom_bid_message'], user_data['selected_subjects']
+    except FileNotFoundError:
+        return None
+        
+# Function to check if user data exists
+def user_data_exists():
+    return os.path.exists('user_data.pkl')    
+
+
+
 # Set up the undetected Chrome browser
 options = ChromeOptions()
 browser = Chrome(options=options)
 
-registered_emails = ['mwacharomwanyolo@gmail.com', 'example1@gmail.com', 'example2@gmail.com']
-subjects = ['Management', 'Marketing', 'Biology', 'Physics', 'Finance', 'Law', 'Nursing', 'Technology', 'Education',
+registered_emails = ['mwacharomwanyolo@gmail.com','BRIANMWACHARO86@gmail.com' 'collinsmutuma96@gmail.com', 'example2@gmail.com']
+subjects = ['Management','English', 'Marketing', 'Biology', 'Physics', 'Finance', 'Law', 'Nursing', 'Technology', 'Education',
             'Business', 'Finance', 'Economics', 'Chemistry', 'Communications and Media', 'Ethics', 'Linguistics',
             'Medicine and Health', 'Nature', 'Political Science', 'Religion and Theology', 'Tourism', 'Others',
             'Project Management', 'Geography', 'criminal justice', 'I.T', 'FINANCE', 'HEALTHCARE', 'Programming',
             'Art (Fine arts, Performing arts)', 'International Relations', 'Music,anthropology',
             'Architecture and architectural designs', 'Accounting', 'Accounting and Finance', 'Environmental Science',
-            'Statistics', 'Computer Science', 'Mathematics', 'Psychology', 'Sociology']
+            'Statistics', 'Computer Science', 'Mathematics', 'Psychology', 'Sociology','Accounting and…','Computer Scien…',]
 
 def check_user_is_registered(email):
     return email in registered_emails
@@ -114,14 +137,22 @@ def click_new_link():
     )
     new_link.click()
 
-user_email = input('Enter your email: ')
-# prompt for the user to enter their custom bid message
-custom_bid_message = input('Enter your custom bid message: ')
+# selected_subjects = None  # Initialize the variable outside the block
 
-if not check_user_is_registered(user_email):
-    print('You are not registered. Please register or exit program execution.')
+  # User Input Section
+if user_data_exists():
+    # If user data exists, load it
+    user_email, user_password, custom_bid_message,selected_subjects = load_user_data()
+    print(selected_subjects)
+
 else:
+    # If user data doesn't exist, prompt the user for input
+  
+
+
+    user_email = input('Enter your email: ')
     user_password = input('Enter your password: ')
+    custom_bid_message = input('Enter your custom bid message: ')
 
     print('Available subjects:')
     for i, subject in enumerate(subjects, 1):
@@ -129,8 +160,19 @@ else:
 
     selected_subjects_indices = input('Enter the numbers of subjects you want to bid on (comma-separated): ').split(',')
     selected_subjects = [subjects[int(index) - 1] for index in selected_subjects_indices]
-
     print(f"You have selected the following subjects: {', '.join(selected_subjects)}")
+
+
+    save_user_data(user_email, user_password, custom_bid_message, selected_subjects)
+
+
+
+
+if not check_user_is_registered(user_email):
+    print('You are not registered. Please register or exit program execution.')
+else:
+
+  
 
     try:
         browser.get("https://writer.writersadmin.com/")
@@ -167,7 +209,7 @@ else:
         print("Clicking on the 'New' link...")
         retry_operation(click_new_link)
 
-        max_iterations = 100
+        max_iterations = 1000000
         for _ in range(max_iterations):
             process_orders(selected_subjects)
             print("Refreshing for new orders...")
